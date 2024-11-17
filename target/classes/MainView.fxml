@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane xmlns:fx="http://javafx.com/fxml" fx:controller="com.example.multithreadedfileuploader.ui.MainView">
+    <children>
+        <!-- File Selection Button -->
+        <Button fx:id="selectFileButton" text="Select File" layoutX="50.0" layoutY="50.0" />
+
+        <!-- File Path Label -->
+        <Label fx:id="filePathLabel" text="No file selected" layoutX="150.0" layoutY="55.0" />
+
+        <!-- Progress Bar -->
+        <ProgressBar fx:id="uploadProgressBar" layoutX="50.0" layoutY="100.0" prefWidth="500.0" progress="0.0" />
+
+        <!-- Start Upload Button -->
+        <Button fx:id="startUploadButton" text="Start Upload" layoutX="50.0" layoutY="150.0" />
+    </children>
+</AnchorPane>
