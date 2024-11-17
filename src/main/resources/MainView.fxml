@@ -4,16 +4,27 @@
 
 <AnchorPane xmlns:fx="http://javafx.com/fxml" fx:controller="com.example.multithreadedfileuploader.ui.MainView">
     <children>
-        <!-- File Selection Button -->
-        <Button fx:id="selectFileButton" text="Select File" layoutX="50.0" layoutY="50.0" />
+        <VBox spacing="15.0" layoutX="20.0" layoutY="20.0" prefWidth="560.0">
+            <!-- Title -->
+            <Label text="Multithreaded File Uploader" style="-fx-font-size: 18px; -fx-font-weight: bold;" />
 
-        <!-- File Path Label -->
-        <Label fx:id="filePathLabel" text="No file selected" layoutX="150.0" layoutY="55.0" />
+            <!-- File Selection -->
+            <HBox spacing="10.0">
+                <Button fx:id="selectFileButton" text="Select File" />
+                <Label fx:id="filePathLabel" text="No file selected" style="-fx-text-fill: gray;" />
+            </HBox>
 
-        <!-- Progress Bar -->
-        <ProgressBar fx:id="uploadProgressBar" layoutX="50.0" layoutY="100.0" prefWidth="500.0" progress="0.0" />
+            <!-- Progress Bar -->
+            <VBox spacing="5.0">
+                <ProgressBar fx:id="uploadProgressBar" prefWidth="500.0" progress="0.0" />
+                <Label fx:id="progressLabel" text="Progress: 0%" style="-fx-text-fill: gray;" />
+            </VBox>
 
-        <!-- Start Upload Button -->
-        <Button fx:id="startUploadButton" text="Start Upload" layoutX="50.0" layoutY="150.0" />
+            <!-- Buttons -->
+            <HBox spacing="10.0">
+                <Button fx:id="startUploadButton" text="Start Upload" />
+                <Button fx:id="cancelUploadButton" text="Cancel Upload" style="-fx-background-color: #ff4c4c; -fx-text-fill: white;" />
+            </HBox>
+        </VBox>
     </children>
 </AnchorPane>

@@ -1,6 +1,9 @@
 package com.example.multithreadedfileuploader.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+
 import java.time.LocalDateTime;
 
 @Entity
@@ -11,12 +14,16 @@ public class FileMetadata {
     private Long id;
 
     @Column(name = "file_name", nullable = false)
+    @NotNull
+    @Size(max = 255)
     private String fileName;
 
     @Column(name = "file_size", nullable = false)
+    @NotNull
     private Long fileSize;
 
     @Column(name = "total_chunks", nullable = false)
+    @NotNull
     private Integer totalChunks;
 
     @Column(name = "uploaded_chunks", nullable = false)
@@ -28,9 +35,16 @@ public class FileMetadata {
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
+    // Default Constructor
+    public FileMetadata() {}
+
     // Getters and Setters
     public Long getId() {
         return id;
+    }
+
+    public void setId(Long id) { // Optional setter
+        this.id = id;
     }
 
     public String getFileName() {

@@ -1,4 +1,6 @@
 com/example/multithreadedfileuploader/logic/FileChunker.class
+com/example/multithreadedfileuploader/config/AppConfig.class
+com/example/multithreadedfileuploader/config/DataSourceConfig.class
 com/example/multithreadedfileuploader/controller/FileUploadController.class
 com/example/multithreadedfileuploader/ui/MainView.class
 com/example/multithreadedfileuploader/entity/FileMetadata.class

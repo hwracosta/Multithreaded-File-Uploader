@@ -6,5 +6,4 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface FileMetadataRepository extends JpaRepository<FileMetadata, Long> {
-    // Add custom queries if needed
 }
