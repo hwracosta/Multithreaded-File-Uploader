@@ -11,12 +11,16 @@ import com.example.multithreadedfileuploader.service.FileUploadService;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 @RestController
 @RequestMapping("/upload")
 public class FileUploadController {
 
     private final FileUploadService fileUploadService;
+
+    private final AtomicBoolean isPaused = new AtomicBoolean(false); // Shared state for pause/resume
+    private final AtomicBoolean isCancelled = new AtomicBoolean(false); // Shared state for cancel
 
     // Constructor-based dependency injection
     @Autowired
@@ -30,17 +34,20 @@ public class FileUploadController {
             // Convert MultipartFile to File
             File file = convertToFile(multipartFile);
 
+            // Reset pause and cancel states
+            isPaused.set(false);
+            isCancelled.set(false);
+
             // Call service to handle the file upload logic
-            fileUploadService.uploadFile(file, progress -> {
-                // Log progress or perform actions (optional)
-                System.out.println("Upload progress: " + (progress * 100) + "%");
-            }, status -> {
-                // Log status or perform actions (optional)
-                System.out.println("Upload status: " + status);
-            });
+            fileUploadService.uploadFile(file,
+                    progress -> System.out.println("Upload progress: " + (progress * 100) + "%"),
+                    status -> System.out.println("Upload status: " + status),
+                    isPaused::get, // Provide pause state as a supplier
+                    isCancelled::get // Provide cancel state as a supplier
+            );
 
             // Return success response
-            return ResponseEntity.ok("File uploaded successfully.");
+            return ResponseEntity.ok("File upload started successfully.");
         } catch (Exception e) {
             // Handle exceptions and return error response
             e.printStackTrace();
@@ -53,5 +60,26 @@ public class FileUploadController {
         File tempFile = File.createTempFile("upload-", multipartFile.getOriginalFilename());
         multipartFile.transferTo(tempFile);
         return tempFile;
+    }
+
+    // Endpoint to pause the upload
+    @PostMapping("/pause")
+    public ResponseEntity<String> pauseUpload() {
+        isPaused.set(true);
+        return ResponseEntity.ok("Upload paused successfully.");
+    }
+
+    // Endpoint to resume the upload
+    @PostMapping("/resume")
+    public ResponseEntity<String> resumeUpload() {
+        isPaused.set(false);
+        return ResponseEntity.ok("Upload resumed successfully.");
+    }
+
+    // Endpoint to cancel the upload
+    @PostMapping("/cancel")
+    public ResponseEntity<String> cancelUpload() {
+        isCancelled.set(true);
+        return ResponseEntity.ok("Upload cancelled successfully.");
     }
 }
