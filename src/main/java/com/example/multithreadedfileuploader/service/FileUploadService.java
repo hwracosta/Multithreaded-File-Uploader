@@ -98,6 +98,11 @@ public class FileUploadService {
         });
     }
 
+    public FileMetadata getFileMetadata(String fileName) {
+        return fileMetadataRepository.findByFileName(fileName)
+                .orElse(null);
+    }
+
     public void fetchProgress(String fileName, Consumer<Double> progressCallback, Consumer<String> statusCallback) {
         FileMetadata metadata = fileMetadataRepository.findByFileName(fileName)
                 .orElseThrow(() -> new IllegalArgumentException("File not found: " + fileName));
@@ -125,6 +130,41 @@ public class FileUploadService {
         isCancelled = true;
         logger.info("Upload cancelled.");
     }
+
+    public void deleteFileMetadataAndChunks(Long fileId) {
+        try {
+            // Delete associated chunks
+            chunkMetadataRepository.deleteAll(chunkMetadataRepository.findByFileId(fileId));
+
+            // Delete file metadata
+            fileMetadataRepository.deleteById(fileId);
+
+            logger.info("Deleted file metadata and chunks for fileId: " + fileId);
+        } catch (Exception e) {
+            logger.severe("Error deleting file metadata and chunks: " + e.getMessage());
+        }
+    }
+
+    public void cleanupCanceledUpload(File file) {
+        try {
+            FileMetadata metadata = fileMetadataRepository.findByFileName(file.getName())
+                    .orElse(null);
+
+            if (metadata != null) {
+                // Delete all chunk metadata for the file
+                chunkMetadataRepository.findByFileId(metadata.getId())
+                        .forEach(chunkMetadataRepository::delete);
+
+                // Delete the file metadata
+                fileMetadataRepository.delete(metadata);
+
+                logger.info("Canceled upload cleaned up for file: " + file.getName());
+            }
+        } catch (Exception e) {
+            logger.severe("Failed to clean up canceled upload: " + e.getMessage());
+        }
+    }
+
 
     public void shutdown() {
         executorService.shutdown();
