@@ -27,9 +27,10 @@ public class FileUploadService {
 
     private final ExecutorService executorService = Executors.newFixedThreadPool(5);
 
-    // Track paused and canceled states
     private volatile boolean isPaused = false;
     private volatile boolean isCancelled = false;
+    private volatile boolean isUploading = false; // To track upload state
+    private volatile File currentFile = null; // To track the current file
 
     public void uploadFile(
             File file,
@@ -38,6 +39,21 @@ public class FileUploadService {
             BooleanSupplier pauseCheck,
             BooleanSupplier cancelCheck
     ) {
+        // Reset progress and upload state when a new file is selected
+        if (currentFile != null && !currentFile.equals(file)) {
+            resetUploadState();  // Reset the state when a new file is selected
+            resetProgress(progressCallback);  // Reset progress bar to 0
+        }
+
+        currentFile = file;  // Track the new file
+
+        // If upload was canceled or no upload is ongoing, reset progress and state
+        if (isCancelled || !isUploading) {
+            resetProgress(progressCallback);
+        }
+
+        isUploading = true;  // Set upload state to in progress
+
         executorService.submit(() -> {
             try {
                 final long CHUNK_SIZE = 1024 * 1024; // 1 MB
@@ -62,9 +78,12 @@ public class FileUploadService {
 
                 for (int i = metadata.getUploadedChunks(); i < totalChunks; i++) {
                     if (cancelCheck.getAsBoolean()) {
+                        // If cancel is pressed, reset progress and stop upload
                         statusCallback.accept("Upload Cancelled");
                         metadata.setStatus("Cancelled");
                         fileMetadataRepository.save(metadata);
+                        resetProgress(progressCallback);  // Reset progress on cancel
+                        isUploading = false;  // Reset upload state
                         return;
                     }
 
@@ -72,7 +91,7 @@ public class FileUploadService {
                         Thread.sleep(500);
                     }
 
-                    Thread.sleep(100);
+                    Thread.sleep(100);  // Simulate file chunk processing delay
 
                     double progress = (double) (i + 1) / totalChunks;
                     progressCallback.accept(progress);
@@ -82,6 +101,7 @@ public class FileUploadService {
 
                     ChunkMetadata chunk = chunkMetadataRepository.findByFileIdAndChunkNumber(metadata.getId(), i)
                             .orElseThrow(() -> new IllegalStateException("Chunk metadata not found"));
+
                     chunk.setStatus("Completed");
                     chunk.setProgress(100.0);
                     chunkMetadataRepository.save(chunk);
@@ -90,53 +110,74 @@ public class FileUploadService {
                 metadata.setStatus("Completed");
                 fileMetadataRepository.save(metadata);
                 statusCallback.accept("Upload Completed!");
+                isUploading = false;  // Reset upload state after completion
 
             } catch (Exception e) {
                 logger.severe("Upload failed: " + e.getMessage());
                 statusCallback.accept("Upload Failed: " + e.getMessage());
+                isUploading = false;  // Reset upload state on failure
             }
         });
     }
 
-    public FileMetadata getFileMetadata(String fileName) {
-        return fileMetadataRepository.findByFileName(fileName)
-                .orElse(null);
-    }
-
-    public void fetchProgress(String fileName, Consumer<Double> progressCallback, Consumer<String> statusCallback) {
-        FileMetadata metadata = fileMetadataRepository.findByFileName(fileName)
-                .orElseThrow(() -> new IllegalArgumentException("File not found: " + fileName));
-        progressCallback.accept((double) metadata.getUploadedChunks() / metadata.getTotalChunks());
-        statusCallback.accept(metadata.getStatus());
-    }
-
-    public synchronized void resumeUpload(File file, Consumer<Double> progressCallback, Consumer<String> statusCallback) {
-        if (!isPaused) {
-            logger.warning("Resume Upload failed: Upload is not paused.");
-            return;
-        }
-        isPaused = false; // Reset the paused flag
-        isCancelled = false; // Reset the canceled flag
-        logger.info("Resuming upload for file: " + file.getName());
-        uploadFile(file, progressCallback, statusCallback, () -> isPaused, () -> isCancelled);
-    }
-
     public void pauseUpload() {
-        isPaused = true;
-        logger.info("Upload paused.");
+        if (isUploading && !isPaused) {
+            isPaused = true;
+            logger.info("Upload paused.");
+        }
+    }
+
+    public void resumeUpload() {
+        if (isUploading && isPaused) {
+            isPaused = false;
+            logger.info("Upload resumed.");
+        }
     }
 
     public void cancelUpload() {
-        isCancelled = true;
-        logger.info("Upload cancelled.");
+        if (isUploading) {
+            isCancelled = true;
+            logger.info("Upload cancelled.");
+            // Reset progress and state when cancel is pressed
+            resetProgress(null);  // Reset progress
+            resetUploadState();  // Reset upload state
+        }
+    }
+
+    public void cleanupCanceledUpload(File file) {
+        if (file != null) {
+            // Find the file metadata by its name or ID
+            FileMetadata metadata = fileMetadataRepository.findByFileName(file.getName())
+                    .orElse(null);
+
+            if (metadata != null) {
+                // Delete the file metadata and related chunk metadata
+                deleteFileMetadataAndChunks(metadata.getId());
+            }
+        }
+    }
+
+
+    public void resetUploadState() {
+        isUploading = false;  // Reset upload state
+        isPaused = false;  // Reset paused state
+        isCancelled = false;  // Reset canceled state
+        currentFile = null;  // Reset current file
+    }
+
+    public void resetProgress(Consumer<Double> progressCallback) {
+        // Reset the progress bar to 0 when the upload is canceled or finished
+        if (progressCallback != null) {
+            progressCallback.accept(0.0);
+        }
     }
 
     public void deleteFileMetadataAndChunks(Long fileId) {
         try {
-            // Delete associated chunks
-            chunkMetadataRepository.deleteAll(chunkMetadataRepository.findByFileId(fileId));
+            // First, delete the chunks associated with the file
+            chunkMetadataRepository.deleteByFileId(fileId);
 
-            // Delete file metadata
+            // Then, delete the file metadata
             fileMetadataRepository.deleteById(fileId);
 
             logger.info("Deleted file metadata and chunks for fileId: " + fileId);
@@ -144,27 +185,6 @@ public class FileUploadService {
             logger.severe("Error deleting file metadata and chunks: " + e.getMessage());
         }
     }
-
-    public void cleanupCanceledUpload(File file) {
-        try {
-            FileMetadata metadata = fileMetadataRepository.findByFileName(file.getName())
-                    .orElse(null);
-
-            if (metadata != null) {
-                // Delete all chunk metadata for the file
-                chunkMetadataRepository.findByFileId(metadata.getId())
-                        .forEach(chunkMetadataRepository::delete);
-
-                // Delete the file metadata
-                fileMetadataRepository.delete(metadata);
-
-                logger.info("Canceled upload cleaned up for file: " + file.getName());
-            }
-        } catch (Exception e) {
-            logger.severe("Failed to clean up canceled upload: " + e.getMessage());
-        }
-    }
-
 
     public void shutdown() {
         executorService.shutdown();

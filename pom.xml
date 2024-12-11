@@ -77,21 +77,14 @@
             <version>${hibernate-validator.version}</version>
         </dependency>
 
-        <!-- JUnit for Testing -->
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter</artifactId>
-            <version>5.10.0</version>
-            <scope>test</scope>
-        </dependency>
-
-        <!-- Spring Boot Starter for Web -->
+        <!-- Spring Boot Starter Web (for web features) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
             <version>${spring-boot.version}</version>
         </dependency>
     </dependencies>
+
 
     <build>
         <plugins>

@@ -95,9 +95,13 @@ public class MainView {
         resumeUploadButton.setOnAction(event -> resumeUpload(file, state, pauseUploadButton, resumeUploadButton));
         cancelUploadButton.setOnAction(event -> cancelUpload(file, state, defaultUploadSection, true));
 
+        // Enable the "Start Upload" button and disable others
+        toggleButtons(true, false, false, false, startUploadButton, pauseUploadButton, resumeUploadButton, cancelUploadButton);
+
         // Mark the default section as used
         isDefaultSectionUsed = true;
     }
+
 
     private void addUploadSection(File file) {
         // Create UI components for the new upload section
@@ -212,10 +216,14 @@ public class MainView {
 
             // Remove the file's state from the tracking map
             uploadStates.remove(file);
+
+            // Re-enable the "Start Upload" button
+            toggleButtons(true, false, false, false, startUploadButton, pauseUploadButton, resumeUploadButton, cancelUploadButton);
         } else {
             logger.warning("Cancel Upload failed: No active upload thread.");
         }
     }
+
 
 
     private void resetDefaultSection() {
@@ -233,6 +241,7 @@ public class MainView {
         isDefaultSectionUsed = false;
     }
 
+
     private void toggleButtons(boolean startEnabled, boolean pauseEnabled, boolean resumeEnabled, boolean cancelEnabled,
                                Button startButton, Button pauseButton, Button resumeButton, Button cancelButton) {
         if (startButton != null) startButton.setDisable(!startEnabled);
@@ -240,6 +249,7 @@ public class MainView {
         if (resumeButton != null) resumeButton.setDisable(!resumeEnabled);
         if (cancelButton != null) cancelButton.setDisable(!cancelEnabled);
     }
+
 
     private static class UploadState {
         private volatile boolean isPaused = false;
