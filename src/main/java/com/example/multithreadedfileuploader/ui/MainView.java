@@ -137,13 +137,13 @@ public class MainView {
         Label newProgressLabel = new Label("Progress: 0%");
         newProgressLabel.setStyle("-fx-text-fill: grey;");
 
-        Button newStartButton = new Button("Start Upload");
+        Button newStartButton = new Button("Upload");
         newStartButton.setStyle(startUploadButton.getStyle());
-        Button newPauseButton = new Button("Pause Upload");
+        Button newPauseButton = new Button("Pause");
         newPauseButton.setStyle(pauseUploadButton.getStyle());
-        Button newResumeButton = new Button("Resume Upload");
+        Button newResumeButton = new Button("Resume");
         newResumeButton.setStyle(resumeUploadButton.getStyle());
-        Button newCancelButton = new Button("Cancel Upload");
+        Button newCancelButton = new Button("Cancel");
         newCancelButton.setStyle(cancelUploadButton.getStyle());
 
         HBox buttonBox = new HBox(10, newStartButton, newPauseButton, newResumeButton, newCancelButton);
