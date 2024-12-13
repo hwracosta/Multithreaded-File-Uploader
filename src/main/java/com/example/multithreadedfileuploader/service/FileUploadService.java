@@ -1,3 +1,20 @@
+/**
+ * Service class responsible for handling the logic of file uploads.
+ * <p>
+ * This service provides methods for uploading files in chunks, pausing, resuming,
+ * and canceling uploads, and managing metadata in the database. It uses a fixed thread pool
+ * to perform file upload operations concurrently and ensures the upload process is tracked
+ * and managed efficiently.
+ * </p>
+ *
+ * <h2>Key Features</h2>
+ * <ul>
+ *   <li>Supports large file uploads by splitting files into manageable chunks.</li>
+ *   <li>Allows pausing, resuming, and canceling uploads with real-time status updates.</li>
+ *   <li>Maintains upload progress and metadata in a database.</li>
+ *   <li>Provides cleanup mechanisms for canceled uploads.</li>
+ * </ul>
+ */
 package com.example.multithreadedfileuploader.service;
 
 import com.example.multithreadedfileuploader.entity.ChunkMetadata;
@@ -32,6 +49,15 @@ public class FileUploadService {
     private volatile boolean isUploading = false; // To track upload state
     private volatile File currentFile = null; // To track the current file
 
+    /**
+     * Uploads a file in chunks and tracks the progress in real-time.
+     *
+     * @param file The file to upload.
+     * @param progressCallback A callback to report the upload progress (0.0 to 1.0).
+     * @param statusCallback A callback to report the status of the upload (e.g., "Completed", "Cancelled").
+     * @param pauseCheck A supplier to check if the upload should be paused.
+     * @param cancelCheck A supplier to check if the upload should be canceled.
+     */
     public void uploadFile(
             File file,
             Consumer<Double> progressCallback,
@@ -41,18 +67,17 @@ public class FileUploadService {
     ) {
         // Reset progress and upload state when a new file is selected
         if (currentFile != null && !currentFile.equals(file)) {
-            resetUploadState();  // Reset the state when a new file is selected
-            resetProgress(progressCallback);  // Reset progress bar to 0
+            resetUploadState();
+            resetProgress(progressCallback);
         }
 
-        currentFile = file;  // Track the new file
+        currentFile = file;
 
-        // If upload was canceled or no upload is ongoing, reset progress and state
         if (isCancelled || !isUploading) {
             resetProgress(progressCallback);
         }
 
-        isUploading = true;  // Set upload state to in progress
+        isUploading = true;
 
         executorService.submit(() -> {
             try {
@@ -78,12 +103,11 @@ public class FileUploadService {
 
                 for (int i = metadata.getUploadedChunks(); i < totalChunks; i++) {
                     if (cancelCheck.getAsBoolean()) {
-                        // If cancel is pressed, reset progress and stop upload
                         statusCallback.accept("Upload Cancelled");
                         metadata.setStatus("Cancelled");
                         fileMetadataRepository.save(metadata);
-                        resetProgress(progressCallback);  // Reset progress on cancel
-                        isUploading = false;  // Reset upload state
+                        resetProgress(progressCallback);
+                        isUploading = false;
                         return;
                     }
 
@@ -91,7 +115,7 @@ public class FileUploadService {
                         Thread.sleep(500);
                     }
 
-                    Thread.sleep(100);  // Simulate file chunk processing delay
+                    Thread.sleep(100);
 
                     double progress = (double) (i + 1) / totalChunks;
                     progressCallback.accept(progress);
@@ -110,16 +134,19 @@ public class FileUploadService {
                 metadata.setStatus("Completed");
                 fileMetadataRepository.save(metadata);
                 statusCallback.accept("Upload Completed!");
-                isUploading = false;  // Reset upload state after completion
+                isUploading = false;
 
             } catch (Exception e) {
                 logger.severe("Upload failed: " + e.getMessage());
                 statusCallback.accept("Upload Failed: " + e.getMessage());
-                isUploading = false;  // Reset upload state on failure
+                isUploading = false;
             }
         });
     }
 
+    /**
+     * Pauses the ongoing file upload.
+     */
     public void pauseUpload() {
         if (isUploading && !isPaused) {
             isPaused = true;
@@ -127,6 +154,9 @@ public class FileUploadService {
         }
     }
 
+    /**
+     * Resumes a paused file upload.
+     */
     public void resumeUpload() {
         if (isUploading && isPaused) {
             isPaused = false;
@@ -134,58 +164,73 @@ public class FileUploadService {
         }
     }
 
+    /**
+     * Cancels the ongoing file upload and resets the upload state.
+     */
     public void cancelUpload() {
         if (isUploading) {
             isCancelled = true;
             logger.info("Upload cancelled.");
-            // Reset progress and state when cancel is pressed
-            resetProgress(null);  // Reset progress
-            resetUploadState();  // Reset upload state
+            resetProgress(null);
+            resetUploadState();
         }
     }
 
+    /**
+     * Cleans up metadata for a canceled upload.
+     *
+     * @param file The file whose metadata should be removed.
+     */
     public void cleanupCanceledUpload(File file) {
         if (file != null) {
-            // Find the file metadata by its name or ID
             FileMetadata metadata = fileMetadataRepository.findByFileName(file.getName())
                     .orElse(null);
 
             if (metadata != null) {
-                // Delete the file metadata and related chunk metadata
                 deleteFileMetadataAndChunks(metadata.getId());
             }
         }
     }
 
-
+    /**
+     * Resets the upload state to its default values.
+     */
     public void resetUploadState() {
-        isUploading = false;  // Reset upload state
-        isPaused = false;  // Reset paused state
-        isCancelled = false;  // Reset canceled state
-        currentFile = null;  // Reset current file
+        isUploading = false;
+        isPaused = false;
+        isCancelled = false;
+        currentFile = null;
     }
 
+    /**
+     * Resets the progress callback to 0.
+     *
+     * @param progressCallback The progress callback to reset.
+     */
     public void resetProgress(Consumer<Double> progressCallback) {
-        // Reset the progress bar to 0 when the upload is canceled or finished
         if (progressCallback != null) {
             progressCallback.accept(0.0);
         }
     }
 
+    /**
+     * Deletes metadata for a file and its associated chunks.
+     *
+     * @param fileId The ID of the file whose metadata and chunks should be removed.
+     */
     public void deleteFileMetadataAndChunks(Long fileId) {
         try {
-            // First, delete the chunks associated with the file
             chunkMetadataRepository.deleteByFileId(fileId);
-
-            // Then, delete the file metadata
             fileMetadataRepository.deleteById(fileId);
-
             logger.info("Deleted file metadata and chunks for fileId: " + fileId);
         } catch (Exception e) {
             logger.severe("Error deleting file metadata and chunks: " + e.getMessage());
         }
     }
 
+    /**
+     * Shuts down the executor service used for file uploads.
+     */
     public void shutdown() {
         executorService.shutdown();
     }
