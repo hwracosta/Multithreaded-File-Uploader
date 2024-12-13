@@ -1,0 +1,12 @@
+com\example\multithreadedfileuploader\config\AppConfig.class
+com\example\multithreadedfileuploader\logic\FileChunker.class
+com\example\multithreadedfileuploader\service\FileUploadService.class
+com\example\multithreadedfileuploader\controller\FileUploadController.class
+com\example\multithreadedfileuploader\ui\MainView$UploadState.class
+com\example\multithreadedfileuploader\entity\ChunkMetadata.class
+com\example\multithreadedfileuploader\ui\MainView.class
+com\example\multithreadedfileuploader\entity\FileMetadata.class
+com\example\multithreadedfileuploader\config\DataSourceConfig.class
+com\example\multithreadedfileuploader\repository\ChunkMetadataRepository.class
+com\example\multithreadedfileuploader\MultiThreadedFileUploaderApplication.class
+com\example\multithreadedfileuploader\repository\FileMetadataRepository.class
