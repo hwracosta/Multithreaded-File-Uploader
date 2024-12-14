@@ -181,16 +181,34 @@ public class FileUploadService {
      *
      * @param file The file whose metadata should be removed.
      */
+    /**
+     * Cleans up metadata for a canceled upload by removing all associated database entries.
+     *
+     * @param file The file whose metadata should be removed.
+     */
     public void cleanupCanceledUpload(File file) {
         if (file != null) {
-            FileMetadata metadata = fileMetadataRepository.findByFileName(file.getName())
-                    .orElse(null);
+            try {
+                // Find the file metadata by file name
+                FileMetadata metadata = fileMetadataRepository.findByFileName(file.getName()).orElse(null);
 
-            if (metadata != null) {
-                deleteFileMetadataAndChunks(metadata.getId());
+                if (metadata != null) {
+                    // Delete associated chunk metadata
+                    chunkMetadataRepository.deleteByFileId(metadata.getId());
+
+                    // Delete file metadata
+                    fileMetadataRepository.deleteById(metadata.getId());
+
+                    logger.info("Successfully removed file and chunk metadata for file: " + file.getName());
+                } else {
+                    logger.warning("No metadata found for file: " + file.getName());
+                }
+            } catch (Exception e) {
+                logger.severe("Error during cleanup for file: " + file.getName() + " - " + e.getMessage());
             }
         }
     }
+
 
     /**
      * Resets the upload state to its default values.

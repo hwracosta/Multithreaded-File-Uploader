@@ -257,28 +257,37 @@ public class MainView {
      * @param isDefault Indicates whether this is the default upload section.
      */
     private void cancelUpload(File file, UploadState state, VBox uploadSection, boolean isDefault) {
-        if (state.isUploading()) {
+        if (state.isUploading() || state.isPaused()) { // Cancel even if paused
             state.setCancelled(true);
+
+            // Interrupt the upload thread
             Thread uploadThread = state.getUploadThread();
             if (uploadThread != null) {
                 uploadThread.interrupt();
             }
 
+            // Remove the upload section from the UI
             if (!isDefault) {
                 Platform.runLater(() -> uploadContainer.getChildren().remove(uploadSection));
             } else {
-                resetDefaultSection();
+                resetDefaultSection(); // Reset default section for reuse
             }
 
+            // Call cleanup method to remove metadata from the database
             fileUploadService.cleanupCanceledUpload(file);
 
+            // Remove the file from the tracking map
             uploadStates.remove(file);
 
-            toggleButtons(true, false, false, false, startUploadButton, pauseUploadButton, resumeUploadButton, cancelUploadButton);
+            // Reset button states in default section
+            if (isDefault) {
+                toggleButtons(true, false, false, false, startUploadButton, pauseUploadButton, resumeUploadButton, cancelUploadButton);
+            }
         } else {
-            logger.warning("Cancel Upload failed: No active upload thread.");
+            logger.warning("Cancel Upload failed: No active or paused upload thread.");
         }
     }
+
 
     /**
      * Resets the default upload section to its initial state.

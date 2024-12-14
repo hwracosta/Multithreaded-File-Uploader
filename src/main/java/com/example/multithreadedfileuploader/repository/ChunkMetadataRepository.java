@@ -4,6 +4,7 @@ import com.example.multithreadedfileuploader.entity.ChunkMetadata;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -50,7 +51,7 @@ public interface ChunkMetadataRepository extends JpaRepository<ChunkMetadata, Lo
     @Transactional
     @Modifying
     @Query("DELETE FROM ChunkMetadata c WHERE c.fileId = :fileId")
-    void deleteByFileId(Long fileId);
+    void deleteByFileId(@Param("fileId") Long fileId); // Add @Param annotatio
 
     /**
      * Retrieves a list of chunks associated with a specific file ID.
