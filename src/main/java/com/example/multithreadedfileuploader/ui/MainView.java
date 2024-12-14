@@ -128,6 +128,7 @@ public class MainView {
      * @param file The file selected for upload.
      */
     private void addUploadSection(File file) {
+        // Create UI components for the new upload section
         Label newFilePathLabel = new Label("Selected: " + file.getAbsolutePath());
         newFilePathLabel.setStyle("-fx-text-fill: grey;");
 
@@ -155,9 +156,14 @@ public class MainView {
 
         Platform.runLater(() -> uploadContainer.getChildren().add(newUploadSection));
 
+        // Initialize upload state for the new file
         UploadState state = new UploadState();
         uploadStates.put(file, state);
 
+        // Set initial button states: Only "Start" is enabled
+        toggleButtons(true, false, false, false, newStartButton, newPauseButton, newResumeButton, newCancelButton);
+
+        // Set button actions for the new section
         newStartButton.setOnAction(event -> startUpload(file, newProgressBar, newProgressLabel, state, newStartButton, newPauseButton, newResumeButton, newCancelButton));
         newPauseButton.setOnAction(event -> pauseUpload(file, state, newPauseButton, newResumeButton));
         newResumeButton.setOnAction(event -> resumeUpload(file, state, newPauseButton, newResumeButton));

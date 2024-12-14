@@ -1,7 +1,11 @@
+/Users/h/Desktop/Code/IntelliJ/Multithreaded-File-Uploader/src/main/java/com/example/multithreadedfileuploader/entity/ChunkMetadata.java
 /Users/h/Desktop/Code/IntelliJ/Multithreaded-File-Uploader/src/main/java/com/example/multithreadedfileuploader/MultiThreadedFileUploaderApplication.java
 /Users/h/Desktop/Code/IntelliJ/Multithreaded-File-Uploader/src/main/java/com/example/multithreadedfileuploader/service/FileUploadService.java
+/Users/h/Desktop/Code/IntelliJ/Multithreaded-File-Uploader/src/main/java/com/example/multithreadedfileuploader/config/DataSourceConfig.java
 /Users/h/Desktop/Code/IntelliJ/Multithreaded-File-Uploader/src/main/java/com/example/multithreadedfileuploader/entity/FileMetadata.java
 /Users/h/Desktop/Code/IntelliJ/Multithreaded-File-Uploader/src/main/java/com/example/multithreadedfileuploader/logic/FileChunker.java
 /Users/h/Desktop/Code/IntelliJ/Multithreaded-File-Uploader/src/main/java/com/example/multithreadedfileuploader/repository/FileMetadataRepository.java
 /Users/h/Desktop/Code/IntelliJ/Multithreaded-File-Uploader/src/main/java/com/example/multithreadedfileuploader/controller/FileUploadController.java
+/Users/h/Desktop/Code/IntelliJ/Multithreaded-File-Uploader/src/main/java/com/example/multithreadedfileuploader/repository/ChunkMetadataRepository.java
+/Users/h/Desktop/Code/IntelliJ/Multithreaded-File-Uploader/src/main/java/com/example/multithreadedfileuploader/config/AppConfig.java
 /Users/h/Desktop/Code/IntelliJ/Multithreaded-File-Uploader/src/main/java/com/example/multithreadedfileuploader/ui/MainView.java
