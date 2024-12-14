@@ -67,16 +67,10 @@
      ```
 
 2. **Run the Application:**
-   - Start the Spring Boot application:
+   - Start the JavaFX application:
 
      ```bash
-     mvn spring-boot:run
-     ```
-
-   - Alternatively, run the generated JAR file:
-
-     ```bash
-     java -jar target/MultithreadedFileUploader-1.0.jar
+     mvn javafx:run
      ```
 
 3. **Launch the UI:**
@@ -86,6 +80,7 @@
 
 1. **Select a File:**
    - Click the **Select File** button to choose a file for upload.
+   - Click the **Select File** once more to choose another file to upload at the same time.
 
 2. **Start Upload:**
    - Press **Start Upload** to initiate the upload process.
@@ -93,17 +88,17 @@
 
 3. **Pause Upload:**
    - Press **Pause Upload** to temporarily halt the upload.
-   - The progress bar stops updating, and the status changes to "Upload Paused".
+   - The progress bar stops updating, and the resume button is now available.
 
 4. **Resume Upload:**
    - Press **Resume Upload** to continue the upload from where it paused.
 
 5. **Cancel Upload:**
    - Press **Cancel Upload** to terminate the upload process.
-   - The upload stops, and the status updates to "Upload Cancelled".
+   - The upload stops, and the metadata are deleted from the database 
 
 Note:
-You can upload multiple files simultaneously. Each file will have its own progress bar and controls for managing its upload status.
+You can upload multiple files simultaneously. Each file will have its own progress bar and functions for managing its upload status.
 ---
 
 ## Documentation
@@ -133,12 +128,7 @@ Threads are the backbone of this project, enabling efficient and seamless file u
   - Handles the upload of *multiple files* concurrently by processing each file in chunks.  
   - Updates FileMetadata and ChunkMetadata records in the database as each chunk is processed.  
   - Sends progress updates to the UI via callbacks for each file.  
-
-Without Threads: The UI would freeze during uploads, causing poor user experience and limiting interactivity.  
- 
-With Threads: Each file's upload runs on separate threads, ensuring smooth UI performance and user interaction.  
-
-
+   
 ## Pause and Resume  
 - *Files:* FileUploadService.java, MainView.java  
 - Threads use the isPaused flag to temporarily pause operations. While paused, threads enter a sleep state.  
@@ -188,8 +178,9 @@ With Threads: Each file's upload runs on separate threads, ensuring smooth UI pe
 ### Why Threads Matter
 
 #### Feasibility Without Threads:
-- **UI Freezing:** Without threads, the UI would become unresponsive during uploads, leading to a poor user experience.
+- **UI Freezing:** Without threads, the UI would become unresponsive during uploads, leading to a poor user experience. Files would be uploaded sequentially. 
 - **Limited Functionality:** Features like pause, resume, and cancel would not be feasible without threads.
+- **With Threads:** Each file's upload runs on separate threads, ensuring smooth UI performance and user interaction.
 
 #### Proof of Concept:
 This project demonstrates the practical use of threads in:
