@@ -115,7 +115,7 @@ public class FileUploadService {
                         Thread.sleep(500);
                     }
 
-                    Thread.sleep(100);
+                    Thread.sleep(10);
 
                     double progress = (double) (i + 1) / totalChunks;
                     progressCallback.accept(progress);
