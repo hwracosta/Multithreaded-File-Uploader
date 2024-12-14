@@ -1,4 +1,3 @@
-com/example/multithreadedfileuploader/logic/FileChunker.class
 com/example/multithreadedfileuploader/ui/MainView.class
 com/example/multithreadedfileuploader/entity/FileMetadata.class
 com/example/multithreadedfileuploader/MultiThreadedFileUploaderApplication.class
