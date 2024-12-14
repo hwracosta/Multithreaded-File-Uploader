@@ -102,6 +102,8 @@
    - Press **Cancel Upload** to terminate the upload process.
    - The upload stops, and the status updates to "Upload Cancelled".
 
+Note:
+You can upload multiple files simultaneously. Each file will have its own progress bar and controls for managing its upload status.
 ---
 
 ## Documentation
@@ -122,24 +124,31 @@ Threads are the backbone of this project, enabling efficient and seamless file u
 2. **Integration with JavaFX:**
    - JavaFX requires UI updates to be executed on the JavaFX Application Thread. This is handled using `Platform.runLater`, ensuring thread-safe updates to progress bars, labels, and buttons based on thread states.
 
-#### Core Threaded Operations
 
-1. **Upload Process:**
-   - **Files:** `FileUploadService.java`, `MainView.java`
-   - The `uploadFile` method:
-      - Reads files in chunks.
-      - Updates `FileMetadata` and `ChunkMetadata` records in the database as each chunk is processed.
-      - Sends progress updates to the UI via callbacks.
-   - **Without Threads:** The UI would freeze during uploads, causing poor user experience and limiting interactivity.
+# Core Threaded Operations  
 
-2. **Pause and Resume:**
-   - **Files:** `FileUploadService.java`, `MainView.java`
-   - Threads use the `isPaused` flag to pause operations temporarily. While paused, threads enter a sleep state.
-   - Upon resuming (`isPaused` set to `false`), threads continue processing from their previous state.
+## Upload Process  
+- *Files:* FileUploadService.java, MainView.java  
+- **The uploadFile Method:**  
+  - Handles the upload of *multiple files* concurrently by processing each file in chunks.  
+  - Updates FileMetadata and ChunkMetadata records in the database as each chunk is processed.  
+  - Sends progress updates to the UI via callbacks for each file.  
 
-3. **Cancel:**
-   - **Files:** `FileUploadService.java`, `MainView.java`
-   - The `isCancelled` flag gracefully stops threads, saving partial progress and cleaning up related metadata.
+Without Threads: The UI would freeze during uploads, causing poor user experience and limiting interactivity.  
+ 
+With Threads: Each file's upload runs on separate threads, ensuring smooth UI performance and user interaction.  
+
+
+## Pause and Resume  
+- *Files:* FileUploadService.java, MainView.java  
+- Threads use the isPaused flag to temporarily pause operations. While paused, threads enter a sleep state.  
+- Upon resuming (isPaused set to false), threads continue processing from their previous state.  
+- Supports pausing and resuming uploads for individual files or all files simultaneously.  
+
+## Cancel  
+- *Files:* FileUploadService.java, MainView.java  
+- The isCancelled flag gracefully stops threads, saving partial progress and cleaning up related metadata.  
+- Supports canceling specific file uploads or all uploads in progress.  
 
 #### UI Integration
 
